@@ -17,6 +17,14 @@
 #define WINDOWS_WIDTH 1200
 #define WINDOW_HEIGHT 800
 
+void displayGame(struct nk_context *ctx){
+    if(nk_begin(ctx, "Game Of Life", nk_rect(0, 0, WINDOWS_WIDTH, WINDOW_HEIGHT),
+    NK_WINDOW_BORDER | NK_WINDOW_MOVABLE)){
+        nk_layout_row_dynamic(ctx, 30, 1);
+        nk_label(ctx, "Hello World", NK_TEXT_LEFT);
+    }
+}
+
 int main(void){
     SDL_Init(SDL_INIT_VIDEO);
 
@@ -70,12 +78,4 @@ int main(void){
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(win);
     SDL_Quit();
-}
-
-displayGame(struct nk_context *ctx){
-    if(nk_begin(ctx, "Game Of Life", nk_rect(0, 0, WINDOWS_WIDTH, WINDOW_HEIGHT),
-    NK_WINDOW_BORDER | NK_WINDOW_MOVABLE)){
-        nk_layout_row_dynamic(ctx, 30, 1);
-        nk_label(ctx, "Hello World", NK_TEXT_LEFT);
-    }
 }
