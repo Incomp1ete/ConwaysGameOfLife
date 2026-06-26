@@ -9,7 +9,8 @@ message(STATUS "Math Library: ${MATH_LIB}")
 
 target_sources(GameOfLife
     PRIVATE
-        GameOfLife.c
+    Client.c
+    nuklear_impl.c
 )
 
 target_link_libraries(GameOfLife
