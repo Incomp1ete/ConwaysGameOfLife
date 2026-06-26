@@ -10,6 +10,7 @@ message(STATUS "Math Library: ${MATH_LIB}")
 target_sources(GameOfLife
     PRIVATE
     Client.c
+    GameOfLifeUI.c
     nuklear_impl.c
 )
 
