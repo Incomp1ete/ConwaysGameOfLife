@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include "GameOfLifeUI.h"
+#include "GameOfLifeSimulation.h"
 
 int main(void){
     SDL_Init(SDL_INIT_VIDEO);
@@ -28,6 +29,8 @@ int main(void){
     nk_sdl_font_stash_end();
     nk_style_set_font(ctx, &font->handle);
 
+    initSimulation();
+    
     int running = 1;
 
     while(running){

@@ -11,6 +11,7 @@ target_sources(GameOfLife
     PRIVATE
     Client.c
     GameOfLifeUI.c
+    GameOfLifeSimulation.c
     nuklear_impl.c
 )
 
