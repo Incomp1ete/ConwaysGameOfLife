@@ -12,6 +12,7 @@ target_sources(GameOfLife
     Client.c
     GameOfLifeUI.c
     GameOfLifeSimulation.c
+    PerformanceMeasuring.c
     nuklear_impl.c
 )
 

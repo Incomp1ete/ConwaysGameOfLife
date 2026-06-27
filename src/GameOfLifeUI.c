@@ -1,9 +1,10 @@
 #include "GameOfLifeUI.h"
 #include "GameOfLifeSimulation.h"
+#include "PerformanceMeasuring.h"
 
 void renderToolbar(struct nk_context *ctx){
-        nk_layout_row_begin(ctx, NK_STATIC, 30, 4);
-        float buttonWidth = 30;
+        nk_layout_row_begin(ctx, NK_STATIC, 30, 5);
+        const float buttonWidth = 30;
 
         nk_layout_row_push(ctx, buttonWidth);
         if(nk_button_symbol(ctx, NK_SYMBOL_RECT_SOLID)){
@@ -24,6 +25,10 @@ void renderToolbar(struct nk_context *ctx){
         if(nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_RIGHT_OUTLINE)){
             doOneTick();
         }
+
+        nk_layout_row_push(ctx, 4*buttonWidth);
+        float measurement = getLastMeasurement();
+        nk_labelf(ctx, NK_TEXT_LEFT, "Frametime: %f", measurement);
 }
 
 void renderCellGrid(struct nk_context *ctx){
@@ -69,9 +74,11 @@ void renderCellGrid(struct nk_context *ctx){
 }
 
 void displayGame(struct nk_context *ctx){
+    startTimer();
     if(nk_begin(ctx, "Game Of Life", nk_rect(0, 0, WINDOWS_WIDTH, WINDOW_HEIGHT),
     NK_WINDOW_BORDER | NK_WINDOW_MOVABLE)){
         renderToolbar(ctx);
         renderCellGrid(ctx);
     }
+    takeMeasurement();
 }
