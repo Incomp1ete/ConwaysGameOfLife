@@ -80,16 +80,11 @@ int getNeigbourCount(int x, int y){
     return neighbourCount;
 }
 
-void stop(void){
-    assert(0 && "Stop is not implemented");
-}
-
-void pause(void){
-    assert(0 && "Pause is not implemented");
-}
-
-void play(void){
-    assert(0 && "Play is not implemented");
+void reset(void){
+    afterTickGrid = mallocGrid();
+    bool** previousGrid = cellGrid;
+    cellGrid = afterTickGrid;
+    free(previousGrid);
 }
 
 void doOneTick(void){

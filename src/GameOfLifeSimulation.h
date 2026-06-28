@@ -8,9 +8,7 @@
 #define VERTICAL_CELL_COUNT 50
 
 void initSimulation(void);
-void stop(void);
-void pause(void);
-void play(void);
+void reset(void);
 void doOneTick(void);
 
 extern bool **cellGrid;

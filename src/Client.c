@@ -8,6 +8,15 @@
 #include "GameOfLifeUI.h"
 #include "GameOfLifeSimulation.h"
 
+void initModules(void){
+    initSimulation();
+    initUi();
+}
+
+void disposeModules(void){
+    disposeUi();
+}
+
 int main(void){
     SDL_Init(SDL_INIT_VIDEO);
 
@@ -29,7 +38,7 @@ int main(void){
     nk_sdl_font_stash_end();
     nk_style_set_font(ctx, &font->handle);
 
-    initSimulation();
+    initModules();
     
     int running = 1;
 
@@ -59,6 +68,7 @@ int main(void){
         SDL_RenderPresent(renderer);
     }
 
+    disposeModules();
     nk_sdl_shutdown();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(win);

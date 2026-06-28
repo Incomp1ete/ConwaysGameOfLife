@@ -1,6 +1,92 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include "GameOfLifeUI.h"
 #include "GameOfLifeSimulation.h"
 #include "PerformanceMeasuring.h"
+#include <assert.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <time.h>
+#include <stdatomic.h>
+
+pthread_t thread;
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+
+atomic_bool paused = true;
+bool running = false;
+
+bool isPaused(){
+    return atomic_load(&paused);
+}
+
+void *worker(void *arg){
+    running = true;
+    (void) arg;
+    struct timespec next;
+    clock_gettime(CLOCK_MONOTONIC, &next);
+
+    while (running)
+    {
+        pthread_mutex_lock(&mutex);
+
+        while (isPaused() && running)
+        {
+            pthread_cond_wait(&cond, &mutex);
+        }
+
+        pthread_mutex_unlock(&mutex);
+
+        if (running == false)
+        {
+            break;
+        }
+
+        clock_gettime(CLOCK_MONOTONIC, &next);
+
+        doOneTick();
+
+        next.tv_sec += 1;
+
+        clock_nanosleep(
+            CLOCK_MONOTONIC,
+            TIMER_ABSTIME,
+            &next,
+            NULL);
+    }
+    
+    return NULL;
+}
+
+void initUi(void){
+    if(pthread_create(&thread, NULL, worker, NULL) != 0){
+        assert(0 && "Failed  to create thread");
+    }
+}
+
+void disposeUi(void){
+    running = false;
+
+    pthread_mutex_lock(&mutex);
+    pthread_cond_broadcast(&cond);
+    pthread_mutex_unlock(&mutex);
+
+    pthread_join(thread, NULL);
+}
+
+void pauseSimulation(void){
+    pthread_mutex_lock(&mutex);
+    atomic_store(&paused, true);
+    pthread_mutex_unlock(&mutex);
+}
+
+void playSimulation(void){
+    pthread_mutex_lock(&mutex);
+    atomic_store(&paused, false);
+    pthread_cond_signal(&cond);
+    pthread_mutex_unlock(&mutex);
+}
 
 void renderToolbar(struct nk_context *ctx){
         nk_layout_row_begin(ctx, NK_STATIC, 30, 5);
@@ -8,21 +94,24 @@ void renderToolbar(struct nk_context *ctx){
 
         nk_layout_row_push(ctx, buttonWidth);
         if(nk_button_symbol(ctx, NK_SYMBOL_RECT_SOLID)){
-            stop();
+            atomic_store(&paused, true);
+            reset();
         }
 
         nk_layout_row_push(ctx, buttonWidth);
-        if(nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_DOWN_OUTLINE)){
-            pause();
+        if(nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_DOWN_OUTLINE)
+            && isPaused() == false){
+            pauseSimulation();
         }
 
         nk_layout_row_push(ctx, buttonWidth);
-        if(nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_RIGHT)){
-            play();
+        if(nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_RIGHT)
+            && isPaused()){
+            playSimulation();
         }
 
         nk_layout_row_push(ctx, buttonWidth);
-        if(nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_RIGHT_OUTLINE)){
+        if(nk_button_symbol(ctx, NK_SYMBOL_TRIANGLE_RIGHT_OUTLINE) && isPaused()){
             doOneTick();
         }
 
