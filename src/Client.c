@@ -10,11 +10,10 @@
 
 void initModules(void){
     initSimulation();
-    initUi();
 }
 
 void disposeModules(void){
-    disposeUi();
+    disposeSimulation();
 }
 
 int main(void){

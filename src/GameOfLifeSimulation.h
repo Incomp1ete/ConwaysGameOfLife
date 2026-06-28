@@ -8,8 +8,16 @@
 #define VERTICAL_CELL_COUNT 50
 
 void initSimulation(void);
-void reset(void);
+void disposeSimulation(void);
+
+void runSimulation(void);
+void pauseSimulation(void);
+void resetSimulation(void);
+
 void doOneTick(void);
+
+bool isSimulationPaused(void);
+void pauseSimulation(void);
 
 extern bool **cellGrid;
 
