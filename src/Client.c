@@ -16,7 +16,9 @@ void disposeModules(void){
     disposeSimulation();
 }
 
-int main(void){
+int main(int argc,char *argv[]){
+    (void) argc;
+    (void) argv;
     SDL_Init(SDL_INIT_VIDEO);
 
     SDL_Window *win = SDL_CreateWindow(
@@ -72,4 +74,6 @@ int main(void){
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(win);
     SDL_Quit();
+
+    return 0;
 }

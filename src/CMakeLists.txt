@@ -1,11 +1,7 @@
-add_executable(GameOfLife)
-
-target_include_directories(GameOfLife PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 find_package(SDL2 REQUIRED)
-find_library(MATH_LIB m REQUIRED)
 
-message(STATUS "Math Library: ${MATH_LIB}")
+add_executable(GameOfLife)
 
 target_sources(GameOfLife
     PRIVATE
@@ -16,8 +12,23 @@ target_sources(GameOfLife
     nuklear_impl.c
 )
 
+target_include_directories(GameOfLife PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+if(WIN32)
+    target_link_libraries(GameOfLife
+    PRIVATE
+    SDL2::SDL2main
+    )
+endif()
+
 target_link_libraries(GameOfLife
     PRIVATE
     SDL2::SDL2
-    ${MATH_LIB}
 )
+
+if(UNIX AND NOT WIN32)
+    target_link_libraries(GameOfLife
+    PRIVATE
+    m
+    )
+endif()
