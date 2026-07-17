@@ -34,6 +34,7 @@ void renderToolbar(struct nk_context *ctx){
 }
 
 void renderCellGrid(struct nk_context *ctx){
+    lockGrid();
     const float cell_size = 16.0f;
     struct nk_rect area;
 
@@ -66,13 +67,15 @@ void renderCellGrid(struct nk_context *ctx){
                     nk_rgb(80,80,80)
                 );
 
-                if(nk_input_is_mouse_click_in_rect(&ctx->input, NK_BUTTON_LEFT, cell))
+                if(nk_input_is_mouse_click_in_rect(&ctx->input, NK_BUTTON_LEFT, cell)
+                && isSimulationPaused())
                 {
                     cellGrid[y][x] ^= 1;
                 }
             }
         }
     }
+    unlockGrid();
 }
 
 void displayGame(struct nk_context *ctx){

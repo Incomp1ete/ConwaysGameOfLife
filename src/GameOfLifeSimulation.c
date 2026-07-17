@@ -11,10 +11,12 @@ bool **afterTickGrid;
 
 pthread_t thread;
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-
+pthread_mutex_t pauseMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t pauseCond = PTHREAD_COND_INITIALIZER;
 atomic_bool paused = true;
+
+pthread_mutex_t gridMutex = PTHREAD_MUTEX_INITIALIZER;
+
 bool running = false;
 
 bool** mallocGrid(){
@@ -37,29 +39,39 @@ void freeGrid(bool** grid){
     free(grid);
 }
 
-bool isSimulationPaused(){
+void lockGrid(void){
+    pthread_mutex_lock(&gridMutex);
+}
+
+void unlockGrid(void){
+    pthread_mutex_unlock(&gridMutex);
+}
+
+bool isSimulationPaused(void){
     return atomic_load(&paused);
 }
 
 void pauseSimulation(void){
-    pthread_mutex_lock(&mutex);
+    pthread_mutex_lock(&pauseMutex);
     atomic_store(&paused, true);
-    pthread_mutex_unlock(&mutex);
+    pthread_mutex_unlock(&pauseMutex);
 }
 
 void runSimulation(void){
-    pthread_mutex_lock(&mutex);
+    pthread_mutex_lock(&pauseMutex);
     atomic_store(&paused, false);
-    pthread_cond_signal(&cond);
-    pthread_mutex_unlock(&mutex);
+    pthread_cond_signal(&pauseCond);
+    pthread_mutex_unlock(&pauseMutex);
 }
 
 void resetSimulation(void){
     pauseSimulation();
+    lockGrid();
     afterTickGrid = mallocGrid();
     bool** previousGrid = cellGrid;
     cellGrid = afterTickGrid;
     free(previousGrid);
+    unlockGrid();
 }
 
 void *worker(void *arg){
@@ -70,14 +82,13 @@ void *worker(void *arg){
 
     while (running)
     {
-        pthread_mutex_lock(&mutex);
-
+        pthread_mutex_lock(&pauseMutex);
         while (isSimulationPaused() && running)
         {
-            pthread_cond_wait(&cond, &mutex);
+            pthread_cond_wait(&pauseCond, &pauseMutex);
         }
 
-        pthread_mutex_unlock(&mutex);
+        pthread_mutex_unlock(&pauseMutex);
 
         if (running == false)
         {
@@ -85,11 +96,8 @@ void *worker(void *arg){
         }
 
         clock_gettime(CLOCK_MONOTONIC, &next);
-
         doOneTick();
-
         next.tv_sec += 1;
-
         clock_nanosleep(
             CLOCK_MONOTONIC,
             TIMER_ABSTIME,
@@ -153,6 +161,7 @@ int getNeighbourCount(int x, int y){
 }
 
 void doOneTick(void){
+    pthread_mutex_lock(&gridMutex);
     afterTickGrid = mallocGrid();
     for(int y = 0; y < VERTICAL_CELL_COUNT; y++){
         for(int x = 0; x < HORIZONTAL_CELL_COUNT; x++){
@@ -180,6 +189,7 @@ void doOneTick(void){
     bool** previousGrid = cellGrid;
     cellGrid = afterTickGrid;
     free(previousGrid);
+    pthread_mutex_unlock(&gridMutex);
 }
 
 void initSimulation(void){
@@ -192,9 +202,9 @@ void initSimulation(void){
 void disposeSimulation(void){
     running = false;
 
-    pthread_mutex_lock(&mutex);
-    pthread_cond_broadcast(&cond);
-    pthread_mutex_unlock(&mutex);
+    pthread_mutex_lock(&pauseMutex);
+    pthread_cond_broadcast(&pauseCond);
+    pthread_mutex_unlock(&pauseMutex);
 
     pthread_join(thread, NULL);
 }

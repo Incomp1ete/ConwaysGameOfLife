@@ -15,6 +15,9 @@ void pauseSimulation(void);
 void resetSimulation(void);
 void doOneTick(void);
 
+void lockGrid(void);
+void unlockGrid(void);
+
 bool isSimulationPaused(void);
 
 extern bool **cellGrid;
