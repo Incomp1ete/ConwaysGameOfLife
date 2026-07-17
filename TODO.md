@@ -1,5 +1,56 @@
 # TODO
 
+## Correctness & Concurrency Bugs
+
+- [ ] `initSimulation()` handles `pthread_create()` failure with
+      `assert(0 && "Failed  to create thread")` (`GameOfLifeSimulation.c:197`).
+      `assert` compiles to nothing when `NDEBUG` is defined, which CMake does
+      automatically for Release builds — the exact build type the CI
+      workflow uses. If `pthread_create` ever fails, execution continues
+      with `thread` uninitialized, and `disposeSimulation()` later calls
+      `pthread_join(thread, NULL)` on that garbage handle — undefined
+      behavior, likely a crash or hang on shutdown. Needs real error
+      handling instead of `assert`.
+
+- [ ] `running` (`GameOfLifeSimulation.c:20`) is a plain `bool`, unlike
+      `paused` which is correctly `atomic_bool`. It's written by both the
+      main thread (`disposeSimulation()`) and the worker thread
+      (unconditionally set `true` as the first line of `worker()`), and read
+      outside of any mutex at the top of `worker()`'s loop — a data race
+      (UB) regardless of timing. Worst case: if the worker thread hasn't
+      reached its first line yet when `disposeSimulation()` runs, the
+      worker's own `running = true` stomps the shutdown request, hanging
+      `pthread_join()` forever. Make it `atomic_bool` like `paused`, or fold
+      it into the mutex-protected pause state.
+
+- [ ] `getLastMeasurement()` / `startTimer()` / `takeMeasurement()`
+      (`PerformanceMeasuring.c`) use `clock()`, which measures CPU time, not
+      wall-clock time. The renderer uses `SDL_RENDERER_PRESENTVSYNC`
+      (`Client.c:33`), so most of a frame's real duration is spent blocked
+      waiting for vsync — time `clock()` won't count. The "Frametime" label
+      will read far lower than the actual frame time. Should use
+      `clock_gettime(CLOCK_MONOTONIC, ...)` instead, the same call already
+      used correctly for tick timing in `GameOfLifeSimulation.c`.
+
+- [ ] `mallocGrid()` (`GameOfLifeSimulation.c:22`) never checks whether
+      `malloc` returned `NULL` before writing through the pointer. Unlikely
+      to matter at 50x50, but worth at least an `assert`/abort so a future
+      larger/configurable grid size (see grid-dimensions TODO below) fails
+      loudly instead of corrupting memory.
+
+- [ ] `WINDOW_HEIGHT` (800, `GameOfLifeUI.h:8`) is smaller than the combined
+      height of the toolbar row (30px) and the cell grid
+      (`VERTICAL_CELL_COUNT * cell_size` = 50*16 = 800px) — 830px of content
+      in an 800px window, so the bottom of the grid can be clipped or
+      require scrolling.
+
+- [ ] `Client.c` doesn't check the return values of `SDL_Init`,
+      `SDL_CreateWindow`, `SDL_CreateRenderer`, or `nk_sdl_init`. On a
+      machine without a usable display/driver (e.g. a headless CI runner,
+      relevant to the headless smoke-test TODO below), these can return
+      `NULL`, and the code will crash on a null dereference instead of
+      failing with a diagnostic.
+
 ## Build system
 
 - [ ] `src/CMakeLists.txt` uses `pthread.h` directly but never declares a
