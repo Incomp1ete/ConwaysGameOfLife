@@ -77,7 +77,7 @@ void renderCellGrid(struct nk_context *ctx){
 
 void displayGame(struct nk_context *ctx){
     startTimer();
-    if(nk_begin(ctx, "Game Of Life", nk_rect(0, 0, WINDOWS_WIDTH, WINDOW_HEIGHT),
+    if(nk_begin(ctx, "Game Of Life", nk_rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT),
     NK_WINDOW_BORDER | NK_WINDOW_MOVABLE)){
         renderToolbar(ctx);
         renderCellGrid(ctx);

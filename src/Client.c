@@ -25,7 +25,7 @@ int main(int argc,char *argv[]){
         "Conways's Game Of Life",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        WINDOWS_WIDTH,
+        WINDOW_WIDTH,
         WINDOW_HEIGHT,
         SDL_WINDOW_SHOWN
     );

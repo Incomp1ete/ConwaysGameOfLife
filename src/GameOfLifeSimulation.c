@@ -19,7 +19,7 @@ bool running = false;
 
 bool** mallocGrid(){
     bool** grid = malloc(VERTICAL_CELL_COUNT * sizeof(bool*));
-    grid[0] = malloc(VERTICAL_CELL_COUNT * HORIZONTAL_CELL_COUNT + sizeof(bool));
+    grid[0] = malloc(VERTICAL_CELL_COUNT * HORIZONTAL_CELL_COUNT * sizeof(bool));
     for(int i = 1; i < VERTICAL_CELL_COUNT; i++){
         grid[i] = grid[0] + i * HORIZONTAL_CELL_COUNT;
     }
@@ -100,7 +100,7 @@ void *worker(void *arg){
     return NULL;
 }
 
-int getNeigbourCount(int x, int y){
+int getNeighbourCount(int x, int y){
     int neighbourCount = 0;
 
     int xLeft = x - 1;
@@ -156,7 +156,7 @@ void doOneTick(void){
     afterTickGrid = mallocGrid();
     for(int y = 0; y < VERTICAL_CELL_COUNT; y++){
         for(int x = 0; x < HORIZONTAL_CELL_COUNT; x++){
-            int neighbourCount = getNeigbourCount(x, y);
+            int neighbourCount = getNeighbourCount(x, y);
 
             if(cellGrid[y][x]){
                 if(neighbourCount < 2 || neighbourCount > 3){
