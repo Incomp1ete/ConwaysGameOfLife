@@ -11,6 +11,12 @@ FetchContent_MakeAvailable(SDL2)
 
 add_executable(GameOfLife)
 
+if(MSVC)
+    add_compile_options(/W4)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
 target_sources(GameOfLife
     PRIVATE
     Client.c
