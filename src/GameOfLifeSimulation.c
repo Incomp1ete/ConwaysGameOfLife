@@ -1,21 +1,19 @@
-#define _POSIX_C_SOURCE 200809L
-
 #include "GameOfLifeSimulation.h"
 #include "assert.h"
-#include <pthread.h>
+#include "Threading.h"
 #include <time.h>
 #include <stdatomic.h>
 
 bool **cellGrid;
 bool **afterTickGrid;
 
-pthread_t thread;
+Thread* thread;
 
-pthread_mutex_t pauseMutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t pauseCond = PTHREAD_COND_INITIALIZER;
+Mutex* pauseMutex;;
+Cond* pauseCond;
 atomic_bool paused = true;
 
-pthread_mutex_t gridMutex = PTHREAD_MUTEX_INITIALIZER;
+Mutex* gridMutex;
 
 bool running = false;
 
@@ -40,11 +38,11 @@ void freeGrid(bool** grid){
 }
 
 void lockGrid(void){
-    pthread_mutex_lock(&gridMutex);
+    mutex_lock(gridMutex);
 }
 
 void unlockGrid(void){
-    pthread_mutex_unlock(&gridMutex);
+    mutex_unlock(gridMutex);
 }
 
 bool isSimulationPaused(void){
@@ -52,16 +50,16 @@ bool isSimulationPaused(void){
 }
 
 void pauseSimulation(void){
-    pthread_mutex_lock(&pauseMutex);
+    mutex_lock(pauseMutex);
     atomic_store(&paused, true);
-    pthread_mutex_unlock(&pauseMutex);
+    mutex_unlock(pauseMutex);
 }
 
 void runSimulation(void){
-    pthread_mutex_lock(&pauseMutex);
+    mutex_lock(pauseMutex);
     atomic_store(&paused, false);
-    pthread_cond_signal(&pauseCond);
-    pthread_mutex_unlock(&pauseMutex);
+    cond_signal(pauseCond);
+    mutex_unlock(pauseMutex);
 }
 
 void resetSimulation(void){
@@ -82,13 +80,13 @@ void *worker(void *arg){
 
     while (running)
     {
-        pthread_mutex_lock(&pauseMutex);
+        mutex_lock(pauseMutex);
         while (isSimulationPaused() && running)
         {
-            pthread_cond_wait(&pauseCond, &pauseMutex);
+            cond_wait(pauseCond, pauseMutex);
         }
 
-        pthread_mutex_unlock(&pauseMutex);
+        mutex_unlock(pauseMutex);
 
         if (running == false)
         {
@@ -161,7 +159,7 @@ int getNeighbourCount(int x, int y){
 }
 
 void doOneTick(void){
-    pthread_mutex_lock(&gridMutex);
+    mutex_lock(gridMutex);
     afterTickGrid = mallocGrid();
     for(int y = 0; y < VERTICAL_CELL_COUNT; y++){
         for(int x = 0; x < HORIZONTAL_CELL_COUNT; x++){
@@ -189,12 +187,15 @@ void doOneTick(void){
     bool** previousGrid = cellGrid;
     cellGrid = afterTickGrid;
     free(previousGrid);
-    pthread_mutex_unlock(&gridMutex);
+    mutex_unlock(gridMutex);
 }
 
 void initSimulation(void){
     cellGrid = mallocGrid();
-    if(pthread_create(&thread, NULL, worker, NULL) != 0){
+    pauseMutex = mutex_create();
+    pauseCond = cond_create();
+    gridMutex = mutex_create();
+    if(thread_create(&thread, worker)){
         assert(0 && "Failed  to create thread");
     }
 }
@@ -202,9 +203,23 @@ void initSimulation(void){
 void disposeSimulation(void){
     running = false;
 
-    pthread_mutex_lock(&pauseMutex);
-    pthread_cond_broadcast(&pauseCond);
-    pthread_mutex_unlock(&pauseMutex);
+    mutex_lock(pauseMutex);
+    cond_broadcast(pauseCond);
+    mutex_unlock(pauseMutex);
 
-    pthread_join(thread, NULL);
+    thread_join(thread);
+    free(thread);
+    thread = NULL;
+
+    mutex_destroy(pauseMutex);
+    free(pauseMutex);
+    pauseMutex = NULL;
+
+    cond_destroy(pauseCond);
+    free(pauseCond);
+    pauseCond = NULL;
+
+    mutex_destroy(gridMutex);
+    free(gridMutex);
+    gridMutex = NULL;
 }
