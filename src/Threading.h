@@ -2,13 +2,13 @@
 #define THREADING_H
 
 typedef struct Mutex Mutex;
-Mutex* mutex_create(void);
+int mutex_create(Mutex** mutex);
 int mutex_lock(Mutex* mutex);
 int mutex_unlock(Mutex* mutex);
 int mutex_destroy(Mutex* mutex);
 
 typedef struct Cond Cond;
-Cond* cond_create(void);
+int cond_create(Cond** cond);
 int cond_signal(Cond* cond);
 int cond_wait(Cond* cond, Mutex* mutex);
 int cond_broadcast(Cond* cond);

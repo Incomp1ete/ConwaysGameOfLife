@@ -192,9 +192,9 @@ void doOneTick(void){
 
 void initSimulation(void){
     cellGrid = mallocGrid();
-    pauseMutex = mutex_create();
-    pauseCond = cond_create();
-    gridMutex = mutex_create();
+    mutex_create(&pauseMutex);
+    cond_create(&pauseCond);
+    mutex_create(&gridMutex);
     if(thread_create(&thread, worker)){
         assert(0 && "Failed  to create thread");
     }
@@ -208,18 +208,14 @@ void disposeSimulation(void){
     mutex_unlock(pauseMutex);
 
     thread_join(thread);
-    free(thread);
     thread = NULL;
 
     mutex_destroy(pauseMutex);
-    free(pauseMutex);
     pauseMutex = NULL;
 
     cond_destroy(pauseCond);
-    free(pauseCond);
     pauseCond = NULL;
 
     mutex_destroy(gridMutex);
-    free(gridMutex);
     gridMutex = NULL;
 }

@@ -9,14 +9,18 @@ struct Mutex
     pthread_mutex_t mutex;
 };
 
-Mutex* mutex_create(void){
-    Mutex* mutex = malloc(sizeof(Mutex));
-    if(mutex == NULL){
-        return NULL;
+int mutex_create(Mutex** mutex){
+    *mutex = malloc(sizeof(Mutex));
+    if(*mutex == NULL){
+        return -1;
     }
 
-    mutex->mutex = PTHREAD_MUTEX_INITIALIZER;
-    return mutex;
+    int code = pthread_mutex_init(&((*mutex)->mutex), NULL);
+    if(code != 0){
+        free(*mutex);
+    }
+    
+    return code;
 }
 
 int mutex_lock(Mutex* mutex){
@@ -28,7 +32,12 @@ int mutex_unlock(Mutex* mutex){
 }
 
 int mutex_destroy(Mutex* mutex){
-    return pthread_mutex_destroy(&(mutex->mutex));
+    int code = pthread_mutex_destroy(&(mutex->mutex));
+    if(code == 0){
+        free(mutex);
+    }
+
+    return code;
 }
 
 struct Cond
@@ -37,14 +46,18 @@ struct Cond
 };
 
 
-Cond* cond_create(void){
-    Cond* cond = malloc(sizeof(Cond));
-    if(cond == NULL){
-        return NULL;
+int cond_create(Cond** cond){
+    *cond = malloc(sizeof(Cond));
+    if(*cond == NULL){
+        return -1;
     }
 
-    cond->cond = PTHREAD_COND_INITIALIZER;
-    return cond;
+    int code = pthread_cond_init((&(*cond)->cond), NULL);
+    if(code != 0){
+        free(*cond);
+    }
+
+    return code;
 }
 
 int cond_signal(Cond* cond){
@@ -60,7 +73,12 @@ int cond_broadcast(Cond* cond){
 }
 
 int cond_destroy(Cond* cond){
-    return pthread_cond_destroy(&(cond->cond));
+    int code = pthread_cond_destroy(&(cond->cond));
+    if(code == 0){
+        free(cond);
+    }
+
+    return code;
 }
 
 struct Thread
@@ -70,13 +88,23 @@ struct Thread
 
 int thread_create(Thread** thread, void *(*func)(void *)){
     *thread = malloc(sizeof(Thread));
-    if(thread == NULL){
+    if(*thread == NULL){
         return -1;
     }
+    
+    int code = pthread_create(&((*thread)->thread), NULL, func, NULL);
+    if(code != 0){
+        free(*thread);
+    }
 
-    return pthread_create(&((*thread)->thread), NULL, func, NULL);
+    return code;
 }
 
 int thread_join(Thread* thread){
-    return pthread_join(thread->thread, NULL);
+    int code = pthread_join(thread->thread, NULL);
+    if(code == 0){
+        free(thread);
+    }
+    
+    return code;
 }
