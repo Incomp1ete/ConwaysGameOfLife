@@ -42,6 +42,9 @@ target_link_libraries(GameOfLife
 )
 
 if(UNIX AND NOT WIN32)
+    target_compile_definitions(GameOfLife
+    PRIVATE    
+    _POSIX_C_SOURCE 200809L)
     target_link_libraries(GameOfLife
     PRIVATE
     m

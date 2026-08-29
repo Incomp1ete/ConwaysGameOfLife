@@ -1,5 +1,3 @@
-#define _POSIX_C_SOURCE 200809L
-
 #include "Threading.h"
 #include <stdlib.h>
 #include <pthread.h>
