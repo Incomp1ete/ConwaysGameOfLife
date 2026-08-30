@@ -15,7 +15,7 @@ atomic_bool paused = true;
 
 Mutex* gridMutex;
 
-bool running = false;
+bool keepRunning = false;
 
 bool** mallocGrid(){
     bool** grid = malloc(VERTICAL_CELL_COUNT * sizeof(bool*));
@@ -73,25 +73,25 @@ void resetSimulation(void){
 }
 
 void *worker(void *arg){
-    running = true;
     (void) arg;
     struct timespec next;
     clock_gettime(CLOCK_MONOTONIC, &next);
 
-    while (running)
+    while (true)
     {
         mutex_lock(pauseMutex);
-        while (isSimulationPaused() && running)
+        while (isSimulationPaused() && keepRunning)
         {
             cond_wait(pauseCond, pauseMutex);
         }
 
-        mutex_unlock(pauseMutex);
-
-        if (running == false)
+        if (keepRunning == false)
         {
+            mutex_unlock(pauseMutex);
             break;
         }
+
+        mutex_unlock(pauseMutex);
 
         clock_gettime(CLOCK_MONOTONIC, &next);
         doOneTick();
@@ -195,15 +195,15 @@ void initSimulation(void){
     mutex_create(&pauseMutex);
     cond_create(&pauseCond);
     mutex_create(&gridMutex);
+    keepRunning = true;
     if(thread_create(&thread, worker)){
         assert(0 && "Failed  to create thread");
     }
 }
 
 void disposeSimulation(void){
-    running = false;
-
     mutex_lock(pauseMutex);
+    keepRunning = false;
     cond_broadcast(pauseCond);
     mutex_unlock(pauseMutex);
 
