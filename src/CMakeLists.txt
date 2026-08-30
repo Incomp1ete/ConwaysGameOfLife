@@ -30,6 +30,10 @@ target_sources(GameOfLife
 target_include_directories(GameOfLife PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 if(WIN32)
+    target_compile_options(GameOfLife
+    PRIVATE
+    /experimental:c11atomics
+    )
     target_link_libraries(GameOfLife
     PRIVATE
     SDL2::SDL2main
