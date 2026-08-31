@@ -22,7 +22,6 @@ target_sources(GameOfLife
     Client.c
     GameOfLifeUI.c
     GameOfLifeSimulation.c
-    PerformanceMeasuring.c
     nuklear_impl.c
     Threading.c
     Clock.c
