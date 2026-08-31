@@ -1,9 +1,6 @@
 #include "Clock.h"
 #include <stdlib.h>
 #include <time.h>
-#include <errno.h>
-#include <string.h>
-#include <stdio.h>
 
 struct Timer {
     struct timespec start;
