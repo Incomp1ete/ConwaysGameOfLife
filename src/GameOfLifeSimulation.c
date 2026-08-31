@@ -1,7 +1,7 @@
 #include "GameOfLifeSimulation.h"
 #include "assert.h"
 #include "Threading.h"
-#include "clock.h"
+#include "Clock.h"
 #include <stdatomic.h>
 
 bool **cellGrid;
