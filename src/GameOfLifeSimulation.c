@@ -1,7 +1,7 @@
 #include "GameOfLifeSimulation.h"
 #include "assert.h"
 #include "Threading.h"
-#include <time.h>
+#include "clock.h"
 #include <stdatomic.h>
 
 bool **cellGrid;
@@ -74,8 +74,8 @@ void resetSimulation(void){
 
 void *worker(void *arg){
     (void) arg;
-    struct timespec next;
-    clock_gettime(CLOCK_MONOTONIC, &next);
+    struct Timer* timer;
+    timer_init(&timer, 1.0);
 
     while (true)
     {
@@ -93,15 +93,13 @@ void *worker(void *arg){
 
         mutex_unlock(pauseMutex);
 
-        clock_gettime(CLOCK_MONOTONIC, &next);
+        timer_restart(timer);
         doOneTick();
-        next.tv_sec += 1;
-        clock_nanosleep(
-            CLOCK_MONOTONIC,
-            TIMER_ABSTIME,
-            &next,
-            NULL);
+        timer_sleepTillDeadline(timer);
     }
+
+    timer_destroy(timer);
+    timer = NULL;
     
     return NULL;
 }
@@ -160,6 +158,7 @@ int getNeighbourCount(int x, int y){
 
 void doOneTick(void){
     mutex_lock(gridMutex);
+    // ToDo: Double Buffer
     afterTickGrid = mallocGrid();
     for(int y = 0; y < VERTICAL_CELL_COUNT; y++){
         for(int x = 0; x < HORIZONTAL_CELL_COUNT; x++){

@@ -25,6 +25,7 @@ target_sources(GameOfLife
     PerformanceMeasuring.c
     nuklear_impl.c
     Threading.c
+    Clock.c
 )
 
 target_include_directories(GameOfLife PRIVATE ${CMAKE_SOURCE_DIR}/include)
