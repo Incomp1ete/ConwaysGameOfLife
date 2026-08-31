@@ -1,4 +1,4 @@
-
+include(CheckIncludeFile)
 include(FetchContent)
 FetchContent_Declare(
     SDL2
@@ -49,6 +49,11 @@ target_link_libraries(GameOfLife
 )
 
 if(UNIX AND NOT WIN32)
+    include(CheckIncludeFile)
+    check_include_file(unistd.h HAVE_UNISTD_H)
+    if(NOT HAVE_UNISTD_H)
+        message(FATAL_ERROR "unsupported platform")
+    endif()
     target_compile_definitions(GameOfLife
     PRIVATE    
     _POSIX_C_SOURCE=200809L)
@@ -56,4 +61,6 @@ if(UNIX AND NOT WIN32)
     PRIVATE
     m
     )
+elseif(NOT UNIX AND NOT WIN32)
+    message(FATAL_ERROR "unsupported platform")
 endif()
