@@ -12,9 +12,19 @@ FetchContent_MakeAvailable(SDL2)
 add_executable(GameOfLife)
 
 if(MSVC)
-    add_compile_options(/W4)
+    target_compile_options(GameOfLife
+    PRIVATE
+    /W4
+    /WX
+    )
 else()
-    add_compile_options(-Wall -Wextra -Wpedantic)
+    target_compile_options(GameOfLife
+    PRIVATE
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Werror
+    )
 endif()
 
 target_sources(GameOfLife
@@ -49,7 +59,6 @@ target_link_libraries(GameOfLife
 )
 
 if(UNIX AND NOT WIN32)
-    include(CheckIncludeFile)
     check_include_file(unistd.h HAVE_UNISTD_H)
     if(NOT HAVE_UNISTD_H)
         message(FATAL_ERROR "unsupported platform")
