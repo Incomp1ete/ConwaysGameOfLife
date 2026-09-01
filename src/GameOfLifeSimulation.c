@@ -9,7 +9,7 @@ bool **afterTickGrid;
 
 Thread* thread;
 
-Mutex* pauseMutex;;
+Mutex* pauseMutex;
 Cond* pauseCond;
 atomic_bool paused = true;
 

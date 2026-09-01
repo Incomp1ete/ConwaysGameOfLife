@@ -17,6 +17,11 @@ if(MSVC)
     /W4
     /WX
     )
+    set_source_files_properties(nuklear_impl.c
+    PROPERTIES
+    COMPILE_OPTIONS
+    "/wd4701" # Disabling flow analysis warning for nuklear_sdl_render, because it can't be disabled using pragma
+    )
 else()
     target_compile_options(GameOfLife
     PRIVATE

@@ -50,7 +50,7 @@ int timer_sleepTillDeadline(Timer *timer)
 
 void timer_destroy(Timer *timer)
 {
-    timeEndPeriod((timer->waitInMs) / 1000);
+    timeEndPeriod((int)(timer->waitInMs) / 1000);
     free(timer);
 }
 #elif defined(__unix__)
